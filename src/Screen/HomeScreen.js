@@ -1,10 +1,11 @@
 import React from 'react';
 import {Text, TextInput, View} from 'react-native';
+import Login from '../components/Login';
 
 const HomeScreen = () => {
     return (
         <View>
-            <TextInput></TextInput>
+            <Login />
         </View>
     );
 };
