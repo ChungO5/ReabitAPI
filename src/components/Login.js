@@ -3,6 +3,16 @@ import {Button, StyleSheet, Text, TextInput, View} from 'react-native';
 
 const API_URI = 'https://reabit.kr/v1';
 
+// 호출 가능 API
+// 로그인
+// 회원 정보 조회
+// API 키 조회
+// 토큰 조회
+// 팔로우 만료 목록 조회
+// 마켓 아이디 조회
+// 봇 페어 목록 조회
+// 알람 목록 조회
+// 공지사항 목록 조회
 const authLogin = async ID => {
     const response = await fetch(`${API_URI}/auth/login`, {
         method: 'POST',
@@ -18,31 +28,30 @@ const authLogin = async ID => {
     return data;
 };
 
-const api = async (token, method) => {
-    const response = await fetch(`${API_URI}/publics`, {
+const api = async (token, method, url) => {
+    const response = await fetch(`${API_URI}${url}`, {
         method: method,
         headers: {
             Authorization: `Bearer ${token}`,
         },
     });
     const data = await response.json();
-
     return data;
 };
 
 const Login = () => {
     const [ID, setpublicId] = useState('');
     const [token, setToken] = useState('NULL');
-    const [method, setMethod] = useState('');
-    const [url, setUrl] = useState('');
-    const [text, setText] = useState('');
+    const [method, setMethod] = useState('GET');
+    const [url, setUrl] = useState('/publics');
+    const [text, setText] = useState({});
 
     const onPress = async ID => {
         const data = await authLogin(ID);
         setToken(data.token);
     };
-    const apply = async (token, method) => {
-        const data = await api(token, method);
+    const apply = async (token, method, url) => {
+        const data = await api(token, method, url);
         setText(data);
     };
     return (
@@ -60,12 +69,31 @@ const Login = () => {
                     onPress={() => onPress(ID)}
                 />
             </View>
-            <Text>{token}</Text>
+            <View
+                style={{
+                    height: 40,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                }}>
+                <Text
+                    style={{
+                        fontSize: 24,
+                    }}>
+                    {token === 'NULL' ? '...' : 'Login Success'}
+                </Text>
+            </View>
             <View style={styles.block}>
                 <TextInput
+                    style={{
+                        fontSize: 18,
+                        paddingVertical: 8,
+                        paddingLeft: 8,
+                        backgroundColor: '#e1e1e1',
+                    }}
                     placeholder="Method"
                     value={method}
                     onChangeText={setMethod}
+                    autoCapitalize={'characters'}
                 />
                 <TextInput
                     style={styles.input}
@@ -76,12 +104,12 @@ const Login = () => {
                 <Button
                     title="apply"
                     style={styles.buttonStyle}
-                    onPress={() => apply(token, method)}
+                    onPress={() => apply(token, method, url)}
                 />
             </View>
-            <Text>{method}</Text>
-            <Text>{url}</Text>
-            <Text>{text}</Text>
+            <Text style={styles.result}>
+                {JSON.stringify(text).replace(/,/g, '\n')}
+            </Text>
         </View>
     );
 };
@@ -91,15 +119,22 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     block: {
-        backgroundColor: '#e0e0e0',
+        height: 48,
+        backgroundColor: '#ffffff',
         flexDirection: 'row',
     },
     input: {
         flex: 1,
-        fontSize: 16,
+        fontSize: 18,
         paddingVertical: 8,
+        paddingLeft: 8,
+        backgroundColor: '#e0e0e0',
     },
     buttonStyle: {},
+    result: {
+        fontSize: 16,
+        paddingLeft: 8,
+    },
 });
 
 export default Login;
