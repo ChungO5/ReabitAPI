@@ -1,57 +1,27 @@
 import React, {useState} from 'react';
 import {Button, StyleSheet, Text, TextInput, View} from 'react-native';
-
-const API_URI = 'https://reabit.kr/v1';
-
-// 호출 가능 API
-// 로그인
-// 회원 정보 조회
-// API 키 조회
-// 토큰 조회
-// 팔로우 만료 목록 조회
-// 마켓 아이디 조회
-// 봇 페어 목록 조회
-// 알람 목록 조회
-// 공지사항 목록 조회
-const authLogin = async ID => {
-    const response = await fetch(`${API_URI}/auth/login`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            publicId: ID,
-        }),
-    });
-    const data = await response.json();
-
-    return data;
-};
-
-const api = async (token, method, url) => {
-    const response = await fetch(`${API_URI}${url}`, {
-        method: method,
-        headers: {
-            Authorization: `Bearer ${token}`,
-        },
-    });
-    const data = await response.json();
-    return data;
-};
+import {authLogin, getAPI} from '../utils/api';
+import {Picker} from '@react-native-picker/picker';
 
 const Login = () => {
-    const [ID, setpublicId] = useState('');
+    const [ID, setpublicId] = useState('2365716535');
     const [token, setToken] = useState('NULL');
-    const [method, setMethod] = useState('GET');
-    const [url, setUrl] = useState('/publics');
+    const [method, setMethod] = useState('');
+    const [url, setUrl] = useState('/bots/pairs/signal');
     const [text, setText] = useState({});
+    const [body, setBody] = useState(
+        '{"side": "buy","bot_id": "cloudcloudcloud","ticker": "MBL", "amount": "3","trade_price": "3000","price": "3200","pl_rate": "3","template_num": "b_crossdown_rsi40"}',
+    );
 
     const onPress = async ID => {
         const data = await authLogin(ID);
         setToken(data.token);
     };
-    const apply = async (token, method, url) => {
-        const data = await api(token, method, url);
+    const apply = async (token, method, url, body) => {
+        const data =
+            method === 'GET'
+                ? await getAPI(token, method, url)
+                : await getAPI(token, method, url, body);
         setText(data);
     };
     return (
@@ -82,19 +52,13 @@ const Login = () => {
                     {token === 'NULL' ? '...' : 'Login Success'}
                 </Text>
             </View>
+            <Picker
+                selectedValue={method}
+                onValueChange={(itemValue, itemIndex) => setMethod(itemValue)}>
+                <Picker.Item label="GET" value="GET" />
+                <Picker.Item label="POST" value="POST" />
+            </Picker>
             <View style={styles.block}>
-                <TextInput
-                    style={{
-                        fontSize: 18,
-                        paddingVertical: 8,
-                        paddingLeft: 8,
-                        backgroundColor: '#e1e1e1',
-                    }}
-                    placeholder="Method"
-                    value={method}
-                    onChangeText={setMethod}
-                    autoCapitalize={'characters'}
-                />
                 <TextInput
                     style={styles.input}
                     placeholder="URL"
@@ -104,9 +68,24 @@ const Login = () => {
                 <Button
                     title="apply"
                     style={styles.buttonStyle}
-                    onPress={() => apply(token, method, url)}
+                    onPress={() => apply(token, method, url, body)}
                 />
             </View>
+            <View
+                style={{
+                    height: 96,
+                    backgroundColor: '#ffffff',
+                    flexDirection: 'row',
+                }}>
+                <TextInput
+                    style={styles.input}
+                    placeholder="body"
+                    value={body}
+                    onChangeText={setBody}
+                    multiline
+                />
+            </View>
+
             <Text style={styles.result}>
                 {JSON.stringify(text).replace(/,/g, '\n')}
             </Text>
